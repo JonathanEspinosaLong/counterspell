@@ -230,7 +230,20 @@ class _CommanderDamageChip extends StatelessWidget {
       builder: (context, cardA, cardB, themeA, themeB, child) {
         return Theme(
           data: fromPartnerA ? themeA : themeB,
-          child: DeltaChip.result(icon: icon, result: result, note: note),
+          child: DeltaChip.result(
+            icon: icon,
+            result: result,
+            note: note,
+            // Tapping the pill enters commander-damage mode with the
+            // commander that dealt this damage selected as the attacker.
+            onTap: () {
+              final interactionLogic = context.counterSpell.interactionLogic;
+              interactionLogic.selectAttackingPlayer(
+                playerIndex: attackerIndex,
+              );
+              interactionLogic.updatePartnerA(attackerIndex, fromPartnerA);
+            },
+          ),
         );
       },
     );
