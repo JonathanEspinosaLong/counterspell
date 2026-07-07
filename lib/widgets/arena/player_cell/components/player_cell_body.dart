@@ -2,6 +2,7 @@ import 'package:counter_spell/widgets/arena/player_cell/arena_player_cell.dart';
 import 'package:counter_spell/widgets/arena/player_cell/components/player_cell_advanced_body.dart';
 import 'package:counter_spell/widgets/arena/player_cell/components/player_cell_basic_body.dart';
 import 'package:counter_spell/widgets/arena/player_cell/components/player_cell_more_button.dart';
+import 'package:counter_spell/widgets/arena/player_cell/components/player_cell_pill_editor.dart';
 import 'package:counter_spell/widgets/components/project/delay_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:sid_base/sid_base.dart';
@@ -81,65 +82,100 @@ class _PlayerCellBodyState extends State<PlayerCellBody> {
       alwaysScrollable: true,
     );
 
-    return Stack(
-      children: [
-        Positioned.fill(
-          child: Align(
-            alignment: toTheLeft ? Alignment.centerLeft : Alignment.centerRight,
-            child: controller.advanced.buildWithStaticChild(
-              child: PageView(
-                physics: basicScrollPhysics,
-                children: [
-                  PlayerCellBasicBody(
-                    playerIndex: widget.playerIndex,
-                    avoidMenuButton: widget.avoidMenuButton,
-                    open: open,
-                  ),
-                ],
-              ),
-              builder: (context, value, child) => AnimatedListed(
-                listed: !value,
-                direction: Axis.horizontal,
-                axisAlignment: toTheLeft ? 1 : -1,
-                fadeFirstFraction: 1,
-                child: child,
+    return controller.focusedPill.build((context, focus) {
+      // When a count pill is focused the rest of the cell UI fades out so the
+      // editor floats over the commander art alone.
+      final bool editing = focus != null;
+      return Stack(
+        children: [
+          Positioned.fill(
+            child: AnimatedOpacity(
+              // Match the pill editor's entrance/exit speed and curve so the
+              // fade tracks the pill's motion.
+              opacity: editing ? 0 : 1,
+              duration: Durations.medium4,
+              curve: Curves.easeOutCubic,
+              child: IgnorePointer(
+                ignoring: editing,
+                child: Stack(
+                  children: [
+                    Positioned.fill(
+                      child: Align(
+                        alignment: toTheLeft
+                            ? Alignment.centerLeft
+                            : Alignment.centerRight,
+                        child: controller.advanced.buildWithStaticChild(
+                          child: PageView(
+                            physics: basicScrollPhysics,
+                            children: [
+                              PlayerCellBasicBody(
+                                playerIndex: widget.playerIndex,
+                                avoidMenuButton: widget.avoidMenuButton,
+                                open: open,
+                              ),
+                            ],
+                          ),
+                          builder: (context, value, child) => AnimatedListed(
+                            listed: !value,
+                            direction: Axis.horizontal,
+                            axisAlignment: toTheLeft ? 1 : -1,
+                            fadeFirstFraction: 1,
+                            child: child,
+                          ),
+                        ),
+                      ),
+                    ),
+                    Positioned.fill(
+                      child: Align(
+                        alignment: toTheLeft
+                            ? Alignment.centerRight
+                            : Alignment.centerLeft,
+                        child: controller.advanced.buildWithStaticChild(
+                          child: PlayerCellAdvancedBody(
+                            playerIndex: widget.playerIndex,
+                            onChangeOrientation: onChangeOrientation,
+                            pageController: advancedPageController,
+                            physics: advancedScrollPhysics,
+                          ),
+                          builder: (context, value, child) => AnimatedListed(
+                            listed: value,
+                            direction: Axis.horizontal,
+                            fadeFirstFraction: 1,
+                            axisAlignment: toTheLeft ? -1 : 1,
+                            child: child,
+                          ),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: PlayerCellMoreButton(
+                        open: () {
+                          onChangeOrientation(true);
+                          advancedPageController.jumpToPage(0);
+                          open();
+                        },
+                        close: close,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
-        ),
-        Positioned.fill(
-          child: Align(
-            alignment: toTheLeft ? Alignment.centerRight : Alignment.centerLeft,
-            child: controller.advanced.buildWithStaticChild(
-              child: PlayerCellAdvancedBody(
+          // Focused single-pill editor: a centered +/- control over the
+          // commander art, shown when a count pill is tapped. It animates its
+          // own entrance/exit (repositioning from the pill's origin).
+          if (focus != null)
+            Positioned.fill(
+              child: PlayerCellPillEditor(
                 playerIndex: widget.playerIndex,
-                onChangeOrientation: onChangeOrientation,
-                pageController: advancedPageController,
-                physics: advancedScrollPhysics,
-              ),
-              builder: (context, value, child) => AnimatedListed(
-                listed: value,
-                direction: Axis.horizontal,
-                fadeFirstFraction: 1,
-                axisAlignment: toTheLeft ? -1 : 1,
-                child: child,
+                focus: focus,
               ),
             ),
-          ),
-        ),
-        Positioned(
-          bottom: 0,
-          right: 0,
-          child: PlayerCellMoreButton(
-            open: () {
-              onChangeOrientation(true);
-              advancedPageController.jumpToPage(0);
-              open();
-            },
-            close: close,
-          ),
-        ),
-      ],
-    );
+        ],
+      );
+    });
   }
 }
