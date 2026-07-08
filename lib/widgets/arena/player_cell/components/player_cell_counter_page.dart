@@ -2,6 +2,8 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:counter_spell/main.dart';
 import 'package:counter_spell/models/game/counter.dart';
 import 'package:counter_spell/models/game/player_state.dart';
+import 'package:counter_spell/models/interaction/pill_focus.dart';
+import 'package:counter_spell/widgets/arena/player_cell/arena_player_cell.dart';
 import 'package:counter_spell/widgets/arena/player_cell/components/player_cell_icon_value.dart';
 import 'package:flutter/material.dart';
 
@@ -32,17 +34,24 @@ class PlayerCellCounterPage extends StatelessWidget {
           amount: -1,
         ),
       ),
-      onTap: () => counterSpell.gameLogic.editGame(
-        (game) => game.addCounters(
-          playerIndex: playerIndex,
-          counter: counter,
-          amount: isBoolean
-              ? value == 0
-                    ? 1
-                    : -1
-              : 1,
-        ),
-      ),
+      onTap: () {
+        counterSpell.gameLogic.editGame(
+          (game) => game.addCounters(
+            playerIndex: playerIndex,
+            counter: counter,
+            amount: isBoolean
+                ? value == 0
+                      ? 1
+                      : -1
+                : 1,
+          ),
+        );
+        if (!isBoolean) {
+          context.arenaPlayerController.focusedPill.update(
+            CounterPillFocus(counter),
+          );
+        }
+      },
       child: PlayerCellIconValue(
         icon: counter.bigIcon,
         highlightIcon: isBoolean && value > 0,

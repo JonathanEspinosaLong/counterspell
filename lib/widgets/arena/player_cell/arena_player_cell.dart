@@ -1,6 +1,7 @@
 import 'package:counter_spell/main.dart';
 import 'package:counter_spell/models/game/counter.dart';
 import 'package:counter_spell/models/interaction/interaction_mode.dart';
+import 'package:counter_spell/models/interaction/pill_focus.dart';
 import 'package:counter_spell/widgets/arena/player_cell/components/player_cell_body.dart';
 import 'package:counter_spell/widgets/arena/player_cell/components/player_cell_decoration.dart';
 import 'package:counter_spell/widgets/arena/player_cell/components/player_cell_padding.dart';
@@ -61,11 +62,16 @@ class _ArenaPlayerCellState extends State<_ArenaPlayerCell>
   @override
   Reactive<int?> cachedAttackerIndex = Reactive(null);
 
+  /// which count pill has taken over the cell (null in the normal life view)
+  @override
+  Reactive<PillFocus?> focusedPill = Reactive(null);
+
   @override
   void dispose() {
     increment.dispose();
     advanced.dispose();
     cachedAttackerIndex.dispose();
+    focusedPill.dispose();
     super.dispose();
   }
 
@@ -142,6 +148,8 @@ mixin ArenaPlayerController {
   Reactive<bool> get advanced;
 
   Reactive<int?> get cachedAttackerIndex;
+
+  Reactive<PillFocus?> get focusedPill;
 
   void nextMultipleOf(int n);
 

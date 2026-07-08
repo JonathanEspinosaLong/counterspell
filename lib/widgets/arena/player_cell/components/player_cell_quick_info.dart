@@ -5,6 +5,8 @@ import 'package:counter_spell/models/game/partner_vectors.dart';
 import 'package:counter_spell/models/game/player_settings.dart';
 import 'package:counter_spell/models/game/player_state.dart';
 import 'package:counter_spell/models/interaction/interaction_mode.dart';
+import 'package:counter_spell/models/interaction/pill_focus.dart';
+import 'package:counter_spell/widgets/arena/player_cell/arena_player_cell.dart';
 import 'package:counter_spell/widgets/arena/player_cell/builders/cell_mode_builder.dart';
 import 'package:counter_spell/widgets/body/players_list_view/player_tile/components/split_theme.dart';
 import 'package:counter_spell/widgets/components/builders/cell_mode_and_increment_builder.dart';
@@ -162,6 +164,11 @@ class _PlayerCellQuickInfo extends StatelessWidget {
                   icon: counter.filledIcon,
                   result: amount,
                   boolean: counter.isBoolean,
+                  onTap: counter.isBoolean
+                      ? null
+                      : () => context.arenaPlayerController.focusedPill.update(
+                          CounterPillFocus(counter),
+                        ),
                 ),
         if (thisPlayerState.commanderCasts.partnerA case int castsA)
           if (castsA != 0)
@@ -172,6 +179,9 @@ class _PlayerCellQuickInfo extends StatelessWidget {
                 false => null,
               },
               result: castsA,
+              onTap: () => context.arenaPlayerController.focusedPill.update(
+                const CastPillFocus(partnerA: true),
+              ),
             ),
         if (thisPlayerState.commanderCasts.partnerB case int castsB)
           if (castsB != 0)
@@ -179,6 +189,9 @@ class _PlayerCellQuickInfo extends StatelessWidget {
               icon: InteractionMode.cast.filledIcon,
               note: 'B',
               result: castsB,
+              onTap: () => context.arenaPlayerController.focusedPill.update(
+                const CastPillFocus(partnerA: false),
+              ),
             ),
         // TODO: add is dead chip
       ],
@@ -230,7 +243,18 @@ class _CommanderDamageChip extends StatelessWidget {
       builder: (context, cardA, cardB, themeA, themeB, child) {
         return Theme(
           data: fromPartnerA ? themeA : themeB,
-          child: DeltaChip.result(icon: icon, result: result, note: note),
+          child: DeltaChip.result(
+            icon: icon,
+            result: result,
+            note: note,
+            onTap: () {
+              final interactionLogic = context.counterSpell.interactionLogic;
+              interactionLogic.selectAttackingPlayer(
+                playerIndex: attackerIndex,
+              );
+              interactionLogic.updatePartnerA(attackerIndex, fromPartnerA);
+            },
+          ),
         );
       },
     );

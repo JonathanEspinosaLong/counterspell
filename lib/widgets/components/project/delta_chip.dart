@@ -8,6 +8,7 @@ class DeltaChip extends StatelessWidget {
     this.increment,
     required this.result,
     this.note,
+    this.onTap,
   }) : boolean = false;
   const DeltaChip.result({
     super.key,
@@ -15,6 +16,7 @@ class DeltaChip extends StatelessWidget {
     required this.result,
     this.boolean = false,
     this.note,
+    this.onTap,
   }) : increment = null;
 
   final IconData icon;
@@ -22,6 +24,8 @@ class DeltaChip extends StatelessWidget {
   final int result;
   final String? note;
   final bool boolean;
+
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -38,41 +42,45 @@ class DeltaChip extends StatelessWidget {
     final mainChip = Material(
       borderRadius: BorderRadius.circular(layout.radius.small),
       color: background,
-      child: Pad(
-        vertical: layout.padding.tiny,
-        horizontal: increment == null
-            ? layout.padding.smaller
-            : layout.padding.small,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: increment == null ? 18 : 20, color: foreground),
-            if (increment case int increment)
-              Pad(
-                left: layout.spacing.tiny,
-                child: Text(
-                  '${increment > 0 ? '+' : ''}$increment',
-                  style: theme.textTheme.labelLarge!.copyWith(
-                    fontSize: theme.textTheme.bodyLarge!.fontSize,
-                    color: foreground,
-                  ),
-                ),
-              ),
-            if ((!boolean) || increment != null)
-              Pad(
-                left: increment == null
-                    ? layout.spacing.tiny
-                    : layout.spacing.small,
-                child: Text(
-                  increment == null ? '$result' : '= $result',
-                  style: theme.textTheme.bodySmall!.copyWith(
-                    color: foreground.withValues(
-                      alpha: increment == null ? 1 : 0.65,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(layout.radius.small),
+        child: Pad(
+          vertical: layout.padding.tiny,
+          horizontal: increment == null
+              ? layout.padding.smaller
+              : layout.padding.small,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: increment == null ? 18 : 20, color: foreground),
+              if (increment case int increment)
+                Pad(
+                  left: layout.spacing.tiny,
+                  child: Text(
+                    '${increment > 0 ? '+' : ''}$increment',
+                    style: theme.textTheme.labelLarge!.copyWith(
+                      fontSize: theme.textTheme.bodyLarge!.fontSize,
+                      color: foreground,
                     ),
                   ),
                 ),
-              ),
-          ],
+              if ((!boolean) || increment != null)
+                Pad(
+                  left: increment == null
+                      ? layout.spacing.tiny
+                      : layout.spacing.small,
+                  child: Text(
+                    increment == null ? '$result' : '= $result',
+                    style: theme.textTheme.bodySmall!.copyWith(
+                      color: foreground.withValues(
+                        alpha: increment == null ? 1 : 0.65,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );
