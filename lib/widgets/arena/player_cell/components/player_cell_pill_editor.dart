@@ -12,14 +12,6 @@ import 'package:counter_spell/widgets/arena/player_cell/components/player_cell_s
 import 'package:flutter/material.dart';
 import 'package:sid_base/sid_base.dart';
 
-/// Takes over the arena cell to edit a single count-bearing pill (a numeric
-/// counter or a commander-cast). Renders as a centered horizontal control — a
-/// `−` on the left, the icon + live value in a highlighted capsule, a `+` on
-/// the right — floating over the commander art (the rest of the cell UI is
-/// hidden by [PlayerCellBody] while this is shown).
-///
-/// Tapping outside the control closes it; once the player has interacted it
-/// also closes itself after the confirmation-delay of inactivity.
 class PlayerCellPillEditor extends StatefulWidget {
   const PlayerCellPillEditor({
     super.key,
@@ -41,8 +33,6 @@ class _PlayerCellPillEditorState extends State<PlayerCellPillEditor>
   late final Animation<double> _t;
   bool _closing = false;
 
-  /// Where the control animates from/to — the top-right corner, where the
-  /// tapped count pills live, so it reads as the pill repositioning itself.
   static const Alignment _origin = Alignment.topRight;
 
   @override
@@ -70,8 +60,6 @@ class _PlayerCellPillEditorState extends State<PlayerCellPillEditor>
     await _controller.reverse();
     if (mounted) {
       final controller = context.arenaPlayerController;
-      // Always return to the normal (basic) cell view — if the editor was
-      // opened from the advanced page, leave that page too.
       controller.advanced.update(false);
       controller.focusedPill.update(null);
     }
@@ -111,8 +99,6 @@ class _PlayerCellPillEditorState extends State<PlayerCellPillEditor>
   @override
   Widget build(BuildContext context) {
     final colorScheme = context.theme.colorScheme;
-    // The center capsule matches the original quick-info pill
-    // (primaryContainer); the +/- pill behind is a darker shade of it.
     final Color behindColor = colorScheme.primaryContainerDim;
 
     final IconData icon = switch (widget.focus) {
@@ -126,8 +112,6 @@ class _PlayerCellPillEditorState extends State<PlayerCellPillEditor>
           constraints.maxWidth,
           constraints.maxHeight,
         );
-        // The whole control is a horizontal pill: [-] [icon value] [+],
-        // with the center capsule noticeably taller than the +/- pill.
         final double centerHeight = side * 0.34;
         final double behindHeight = centerHeight / 1.5;
         final double buttonZone = behindHeight * 0.85;
@@ -136,9 +120,6 @@ class _PlayerCellPillEditorState extends State<PlayerCellPillEditor>
         final Widget control = Stack(
           alignment: Alignment.center,
           children: [
-            // Pill behind, holding the − and + buttons. A Material carries the
-            // background and shape so the ink splashes paint above [behindColor]
-            // and are clipped to the rounded pill.
             Material(
               color: behindColor,
               borderRadius: BorderRadius.circular(behindHeight / 2),
@@ -149,9 +130,6 @@ class _PlayerCellPillEditorState extends State<PlayerCellPillEditor>
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Each half widens to the pill center so its ripple runs
-                    // behind the center capsule, with the icon pinned to its
-                    // outer end so it still reads as centered.
                     SizedBox(
                       width: buttonZone + centerWidth / 2,
                       child: _StepButton(
@@ -178,7 +156,6 @@ class _PlayerCellPillEditorState extends State<PlayerCellPillEditor>
                 ),
               ),
             ),
-            // Highlighted center capsule with the icon + live value.
             Container(
               width: centerWidth,
               height: centerHeight,
@@ -196,8 +173,6 @@ class _PlayerCellPillEditorState extends State<PlayerCellPillEditor>
           ],
         );
 
-        // Animate the control in/out as if the tapped pill repositions itself
-        // from its top-right origin to the center, scaling up and fading in.
         return AnimatedBuilder(
           animation: _t,
           builder: (context, _) {
@@ -206,7 +181,6 @@ class _PlayerCellPillEditorState extends State<PlayerCellPillEditor>
               opacity: t.clamp(0.0, 1.0),
               child: Stack(
                 children: [
-                  // Tapping outside the control closes the editor.
                   Positioned.fill(
                     child: GestureDetector(
                       behavior: HitTestBehavior.opaque,
@@ -220,7 +194,6 @@ class _PlayerCellPillEditorState extends State<PlayerCellPillEditor>
                       child: control,
                     ),
                   ),
-                  // Explicit close, pinned to the cell's top-right corner.
                   Positioned(
                     top: side * 0.06,
                     right: side * 0.06,

@@ -102,9 +102,6 @@ extension on Axis {
   };
 }
 
-/// Step multiplier for a hold sustained for [duration], escalating the longer
-/// a [ContinuedLongPress] is held. Returns null before the hold threshold, when
-/// no repeated step should fire yet.
 int? continuedLongPressMultiplier(Duration duration) {
   if (duration < 650.milliseconds) return null;
   return switch (duration.inMilliseconds) {

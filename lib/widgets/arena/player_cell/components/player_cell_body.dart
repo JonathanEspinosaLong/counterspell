@@ -83,15 +83,12 @@ class _PlayerCellBodyState extends State<PlayerCellBody> {
     );
 
     return controller.focusedPill.build((context, focus) {
-      // When a count pill is focused the rest of the cell UI fades out so the
-      // editor floats over the commander art alone.
       final bool editing = focus != null;
       return Stack(
         children: [
           Positioned.fill(
             child: AnimatedOpacity(
-              // Match the pill editor's entrance/exit speed and curve so the
-              // fade tracks the pill's motion.
+              // same timing as the pill editor's entrance/exit
               opacity: editing ? 0 : 1,
               duration: Durations.medium4,
               curve: Curves.easeOutCubic,
@@ -164,9 +161,6 @@ class _PlayerCellBodyState extends State<PlayerCellBody> {
               ),
             ),
           ),
-          // Focused single-pill editor: a centered +/- control over the
-          // commander art, shown when a count pill is tapped. It animates its
-          // own entrance/exit (repositioning from the pill's origin).
           if (focus != null)
             Positioned.fill(
               child: PlayerCellPillEditor(

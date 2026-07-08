@@ -62,8 +62,7 @@ class _ArenaPlayerCellState extends State<_ArenaPlayerCell>
   @override
   Reactive<int?> cachedAttackerIndex = Reactive(null);
 
-  /// which count-bearing quick-info pill has taken over the cell for focused
-  /// +/- editing (null when the normal life view is shown)
+  /// which count pill has taken over the cell (null in the normal life view)
   @override
   Reactive<PillFocus?> focusedPill = Reactive(null);
 

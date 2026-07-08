@@ -41,7 +41,6 @@ class PlayerCellCastPage extends StatelessWidget {
             times: 1,
           ),
         );
-        // Surface the focused +/- editor after the tap.
         context.arenaPlayerController.focusedPill.update(
           CastPillFocus(partnerA: partnerA),
         );

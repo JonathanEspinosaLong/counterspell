@@ -164,8 +164,6 @@ class _PlayerCellQuickInfo extends StatelessWidget {
                   icon: counter.filledIcon,
                   result: amount,
                   boolean: counter.isBoolean,
-                  // Numeric counters take over the cell for +/- editing;
-                  // boolean statuses have no count so stay inert.
                   onTap: counter.isBoolean
                       ? null
                       : () => context.arenaPlayerController.focusedPill.update(
@@ -249,8 +247,6 @@ class _CommanderDamageChip extends StatelessWidget {
             icon: icon,
             result: result,
             note: note,
-            // Tapping the pill enters commander-damage mode with the
-            // commander that dealt this damage selected as the attacker.
             onTap: () {
               final interactionLogic = context.counterSpell.interactionLogic;
               interactionLogic.selectAttackingPlayer(

@@ -25,7 +25,6 @@ class DeltaChip extends StatelessWidget {
   final String? note;
   final bool boolean;
 
-  /// When set, the pill becomes tappable (with an ink ripple over the pill).
   final VoidCallback? onTap;
 
   @override

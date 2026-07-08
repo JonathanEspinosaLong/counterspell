@@ -46,7 +46,6 @@ class PlayerCellCounterPage extends StatelessWidget {
                 : 1,
           ),
         );
-        // For count values, surface the focused +/- editor after the tap.
         if (!isBoolean) {
           context.arenaPlayerController.focusedPill.update(
             CounterPillFocus(counter),
