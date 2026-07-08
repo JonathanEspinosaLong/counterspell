@@ -2,17 +2,19 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:counter_spell/data/color_scheme_extensions.dart';
 import 'package:counter_spell/main.dart';
 import 'package:counter_spell/models/game/partner_vectors.dart';
 import 'package:counter_spell/models/interaction/pill_focus.dart';
 import 'package:counter_spell/models/pages.dart';
 import 'package:counter_spell/widgets/arena/player_cell/arena_player_cell.dart';
+import 'package:counter_spell/widgets/arena/player_cell/components/player_cell_side_taps.dart';
 import 'package:flutter/material.dart';
 import 'package:sid_base/sid_base.dart';
 
 /// Takes over the arena cell to edit a single count-bearing pill (a numeric
 /// counter or a commander-cast). Renders as a centered horizontal control — a
-/// `+` on the left, the icon + live value in a highlighted capsule, a `−` on
+/// `−` on the left, the icon + live value in a highlighted capsule, a `+` on
 /// the right — floating over the commander art (the rest of the cell UI is
 /// hidden by [PlayerCellBody] while this is shown).
 ///
@@ -111,10 +113,7 @@ class _PlayerCellPillEditorState extends State<PlayerCellPillEditor>
     final colorScheme = context.theme.colorScheme;
     // The center capsule matches the original quick-info pill
     // (primaryContainer); the +/- pill behind is a darker shade of it.
-    final Color behindColor = Color.alphaBlend(
-      Colors.black.withValues(alpha: 0.35),
-      colorScheme.primaryContainer,
-    );
+    final Color behindColor = colorScheme.primaryContainerDim;
 
     final IconData icon = switch (widget.focus) {
       CounterPillFocus(:final counter) => counter.bigIcon,
@@ -127,7 +126,7 @@ class _PlayerCellPillEditorState extends State<PlayerCellPillEditor>
           constraints.maxWidth,
           constraints.maxHeight,
         );
-        // The whole control is a horizontal pill: [+] [icon value] [-],
+        // The whole control is a horizontal pill: [-] [icon value] [+],
         // with the center capsule noticeably taller than the +/- pill.
         final double centerHeight = side * 0.34;
         final double behindHeight = centerHeight / 1.5;
@@ -137,34 +136,46 @@ class _PlayerCellPillEditorState extends State<PlayerCellPillEditor>
         final Widget control = Stack(
           alignment: Alignment.center,
           children: [
-            // Pill behind, holding the + and - buttons.
-            Container(
-              height: behindHeight,
-              decoration: BoxDecoration(
-                color: behindColor,
-                borderRadius: BorderRadius.circular(behindHeight / 2),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  SizedBox(
-                    width: buttonZone,
-                    child: _StepButton(
-                      icon: Icons.add,
-                      color: colorScheme.onPrimaryContainer,
-                      onTap: () => _edit(1),
+            // Pill behind, holding the − and + buttons. A Material carries the
+            // background and shape so the ink splashes paint above [behindColor]
+            // and are clipped to the rounded pill.
+            Material(
+              color: behindColor,
+              borderRadius: BorderRadius.circular(behindHeight / 2),
+              clipBehavior: Clip.antiAlias,
+              child: SizedBox(
+                height: behindHeight,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Each half widens to the pill center so its ripple runs
+                    // behind the center capsule, with the icon pinned to its
+                    // outer end so it still reads as centered.
+                    SizedBox(
+                      width: buttonZone + centerWidth / 2,
+                      child: _StepButton(
+                        icon: Icons.remove,
+                        color: colorScheme.onPrimaryContainer,
+                        sign: -1,
+                        onEdit: _edit,
+                        iconAlignment: Alignment.centerLeft,
+                        iconZone: buttonZone,
+                      ),
                     ),
-                  ),
-                  SizedBox(width: centerWidth),
-                  SizedBox(
-                    width: buttonZone,
-                    child: _StepButton(
-                      icon: Icons.remove,
-                      color: colorScheme.onPrimaryContainer,
-                      onTap: () => _edit(-1),
+                    SizedBox(
+                      width: buttonZone + centerWidth / 2,
+                      child: _StepButton(
+                        icon: Icons.add,
+                        color: colorScheme.onPrimaryContainer,
+                        sign: 1,
+                        onEdit: _edit,
+                        iconAlignment: Alignment.centerRight,
+                        iconZone: buttonZone,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
             // Highlighted center capsule with the icon + live value.
@@ -209,6 +220,16 @@ class _PlayerCellPillEditorState extends State<PlayerCellPillEditor>
                       child: control,
                     ),
                   ),
+                  // Explicit close, pinned to the cell's top-right corner.
+                  Positioned(
+                    top: side * 0.06,
+                    right: side * 0.06,
+                    child: _CloseButton(
+                      size: centerHeight * 0.5,
+                      iconColor: colorScheme.onPrimaryContainer,
+                      onTap: _close,
+                    ),
+                  ),
                 ],
               ),
             );
@@ -223,19 +244,61 @@ class _StepButton extends StatelessWidget {
   const _StepButton({
     required this.icon,
     required this.color,
-    required this.onTap,
+    required this.sign,
+    required this.onEdit,
+    required this.iconAlignment,
+    required this.iconZone,
   });
 
   final IconData icon;
   final Color color;
+  final int sign;
+  final void Function(int amount) onEdit;
+  final AlignmentGeometry iconAlignment;
+  final double iconZone;
+
+  @override
+  Widget build(BuildContext context) {
+    return ContinuedLongPress(
+      onTapDown: () => onEdit(sign),
+      onTapUp: () {},
+      onContinuedLongPress: (duration) {
+        final n = continuedLongPressMultiplier(duration);
+        if (n != null) onEdit(sign * n);
+      },
+      child: Align(
+        alignment: iconAlignment,
+        child: SizedBox(
+          width: iconZone,
+          child: Center(child: Icon(icon, color: color, size: 28)),
+        ),
+      ),
+    );
+  }
+}
+
+class _CloseButton extends StatelessWidget {
+  const _CloseButton({
+    required this.size,
+    required this.iconColor,
+    required this.onTap,
+  });
+
+  final double size;
+  final Color iconColor;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return InkResponse(
-      onTap: onTap,
-      radius: 28,
-      child: Center(child: Icon(icon, color: color, size: 28)),
+    return SizedBox.square(
+      dimension: size,
+      child: InkResponse(
+        onTap: onTap,
+        radius: size,
+        child: Center(
+          child: Icon(Icons.close, color: iconColor, size: size * 0.6),
+        ),
+      ),
     );
   }
 }
