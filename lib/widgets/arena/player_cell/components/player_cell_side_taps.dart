@@ -42,24 +42,8 @@ class PlayerCellSideTaps extends StatelessWidget {
     }
 
     void onLongPress(Duration duration, Axis direction) {
-      if (duration < 650.milliseconds) return;
-      int n = switch (duration.inMilliseconds) {
-        < 3000 => 5,
-        < 6000 => 10,
-        < 10000 => 20,
-        < 13000 => 50,
-        < 16000 => 100,
-        < 18000 => 200,
-        < 20000 => 500,
-        < 22500 => 1000,
-        < 25000 => 2000,
-        < 27500 => 5000,
-        < 30000 => 10000,
-        < 32000 => 20000,
-        < 34000 => 50000,
-        < 36000 => 100000,
-        _ => 200000,
-      };
+      final n = continuedLongPressMultiplier(duration);
+      if (n == null) return;
       if (direction == Axis.horizontal) {
         previousMultipleOf(n);
       } else {
@@ -115,6 +99,30 @@ extension on Axis {
   Axis get opposite => switch (this) {
     Axis.horizontal => Axis.vertical,
     Axis.vertical => Axis.horizontal,
+  };
+}
+
+/// Step multiplier for a hold sustained for [duration], escalating the longer
+/// a [ContinuedLongPress] is held. Returns null before the hold threshold, when
+/// no repeated step should fire yet.
+int? continuedLongPressMultiplier(Duration duration) {
+  if (duration < 650.milliseconds) return null;
+  return switch (duration.inMilliseconds) {
+    < 3000 => 5,
+    < 6000 => 10,
+    < 10000 => 20,
+    < 13000 => 50,
+    < 16000 => 100,
+    < 18000 => 200,
+    < 20000 => 500,
+    < 22500 => 1000,
+    < 25000 => 2000,
+    < 27500 => 5000,
+    < 30000 => 10000,
+    < 32000 => 20000,
+    < 34000 => 50000,
+    < 36000 => 100000,
+    _ => 200000,
   };
 }
 
